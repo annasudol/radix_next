@@ -6,11 +6,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  --radix-connect-button-width: 10rem;
+  --radix-connect-button-width: 9rem;
   --radix-connect-button-height: 2.5rem;
   --radix-connect-button-border-radius: 1rem;
 }
 
-#connect-btn .content {
-  background-color: #fff;
+@media (max-width: 384px) {
+  #connect-btn {
+    --radix-connect-button-width: 50px;
+  }
 }
