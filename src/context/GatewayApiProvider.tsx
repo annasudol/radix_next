@@ -1,5 +1,5 @@
-import { gatewayApiContext } from "./contexts";
-import { GatewayApiClient } from "@radixdlt/babylon-gateway-api-sdk";
+import { gatewayApiContext } from './contexts';
+import { GatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk';
 
 export const GatewayApiProvider = ({
   value,
@@ -7,8 +7,4 @@ export const GatewayApiProvider = ({
 }: {
   value: GatewayApiClient | null;
   children: React.ReactNode;
-}) => (
-  <gatewayApiContext.Provider value={value}>
-    {children}
-  </gatewayApiContext.Provider>
-);
+}) => <gatewayApiContext.Provider value={value}>{children}</gatewayApiContext.Provider>;
