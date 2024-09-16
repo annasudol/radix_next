@@ -32,11 +32,11 @@ import { siteConfig } from '@/config/site';
 export const Navbar = () => {
 
   return (
-    <NextUINavbar maxWidth="xl" position="sticky">
+    <NextUINavbar maxWidth="xl" position="sticky" className='bg-mainDark'>
       <NavbarContent className="basis-2/5 sm:basis-full" justify="start">
         <NavbarBrand className="gap-3 max-w-fit">
           <Link className="w-32 sm:w-52" color="foreground" href="/">
-            <img src="/public/vite.svg" alt="logo" className="w-32 sm:w-52" />
+            <img src="/logo.svg" alt="logo" className="w-32 sm:w-52" />
           </Link>
         </NavbarBrand>
         <div className="hidden lg:flex gap-4 justify-start ml-2">

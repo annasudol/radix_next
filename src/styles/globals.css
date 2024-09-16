@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  background-color: #141414;
   display: flex;
   justify-content: center;
   align-items: center;
