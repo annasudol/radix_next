@@ -22,7 +22,7 @@ export interface ValidationResult {
   message: string;
 }
 
-import { useAppDispatch, useAppSelector, useHydrationErrorFix } from 'hooks';
+import { useAppDispatch, useAppSelector, useHydrationErrorFix } from '../hooks';
 // import { fetchBalances } from 'state/pairSelectorSlice';
 // import {
 //   OrderSide,
@@ -103,9 +103,11 @@ interface DisabledInputFieldProps {
 
 export function OrderInput() {
   const dispatch = useAppDispatch();
-  const pairAddress = useAppSelector((state: { pairSelector: { address: any; }; }) => state.pairSelector.address);
-  const { walletData } = useAppSelector((state: { radix: any; }) => state.radix);
-  const { type, side, token1, token2, price, specifiedToken } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
+  const pairAddress = useAppSelector((state: { pairSelector: { address: any } }) => state.pairSelector.address);
+  const { walletData } = useAppSelector((state: { radix: any }) => state.radix);
+  const { type, side, token1, token2, price, specifiedToken } = useAppSelector(
+    (state: { orderInput: any }) => state.orderInput,
+  );
 
   // for better readibility
   const isMarketOrder = type === 'MARKET';
@@ -123,26 +125,26 @@ export function OrderInput() {
     // dispatch(orderInputSlice.actions.resetUserInput());
   }, [dispatch, walletData]);
 
-//   useEffect(() => {
-//     if (pairAddressIsSet(pairAddress) && priceIsValid(price, type) && tokenIsSpecified(specifiedToken)) {
-//       dispatch(fetchQuote());
-//     }
-//   }, [dispatch, specifiedToken, token1, token2, price, side, type, pairAddress]);
+  //   useEffect(() => {
+  //     if (pairAddressIsSet(pairAddress) && priceIsValid(price, type) && tokenIsSpecified(specifiedToken)) {
+  //       dispatch(fetchQuote());
+  //     }
+  //   }, [dispatch, specifiedToken, token1, token2, price, side, type, pairAddress]);
 
   return (
     <div className="h-full flex flex-col text-base justify-start items-center">
       <OrderSideTabs />
-      {/* INNER_CONTAINER_MAX_WIDTH */}
+      OrderSideTabs
       <div className={`p-4 m-auto my-0 h-[570px] w-full`}>
-        <OrderTypeTabs />
+        {/* <OrderTypeTabs />
         <UserInputContainer />
-        <SubmitButton />
-        {isMarketOrder && (
+        <SubmitButton /> */}
+        {/* {isMarketOrder && (
           <>
             <EstimatedTotalOrQuantity />
             <MarketOrderDisclaimer />
           </>
-        )}
+        )} */}
       </div>
     </div>
   );
@@ -162,7 +164,7 @@ function OrderSideTabs() {
 }
 
 function OrderSideTab({ orderSide }: OrderSideTabProps): JSX.Element | null {
-  const side = useAppSelector((state: { orderInput: { side: any; }; }) => state.orderInput.side);
+  const side = useAppSelector((state: { orderInput: { side: any } }) => state.orderInput.side);
   const dispatch = useAppDispatch();
 
   return (
@@ -184,175 +186,173 @@ function OrderSideTab({ orderSide }: OrderSideTabProps): JSX.Element | null {
   );
 }
 
-function OrderTypeTabs() {
-  return (
-    <>
-      <div className="h-[40px] flex justify-center">
-        <div className="w-full">
-          <div className="flex h-[40px]">
-            {[OrderType.MARKET, OrderType.LIMIT].map((type, indx) => (
-              <OrderTypeTab orderType={type} key={indx} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+// function OrderTypeTabs() {
+//   return (
+//     <>
+//       <div className="h-[40px] flex justify-center">
+//         <div className="w-full">
+//           <div className="flex h-[40px]">
+//             {[OrderType.MARKET, OrderType.LIMIT].map((type, indx) => (
+//               <OrderTypeTab orderType={type} key={indx} />
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
 
-function OrderTypeTab({ orderType }: OrderTypeTabProps): JSX.Element | null {
-  const type = useAppSelector((state: { orderInput: { type: any; }; }) => state.orderInput.type);
-  const dispatch = useAppDispatch();
+// function OrderTypeTab({ orderType }: OrderTypeTabProps): JSX.Element | null {
+//   const type = useAppSelector((state: { orderInput: { type: any; }; }) => state.orderInput.type);
+//   const dispatch = useAppDispatch();
 
-  return (
-    <div
-      className={`w-[50%] cursor-pointer hover:opacity-100 flex justify-center items-center ${
-        type === orderType ? ' bg-base-100 text-white' : ' bg-base-200 opacity-50'
-      } ${type === 'MARKET' ? 'rounded-tl' : 'rounded-tr'}`}
-      onClick={() => {
-        dispatch(orderInputSlice.actions.setType(orderType));
-      }}
-    >
-      <p className="uppercase font-medium text-sm tracking-[.1px] select-none">{orderType}</p>
-    </div>
-  );
-}
+//   return (
+//     <div
+//       className={`w-[50%] cursor-pointer hover:opacity-100 flex justify-center items-center ${
+//         type === orderType ? ' bg-base-100 text-white' : ' bg-base-200 opacity-50'
+//       } ${type === 'MARKET' ? 'rounded-tl' : 'rounded-tr'}`}
+//       onClick={() => {
+//         dispatch(orderInputSlice.actions.setType(orderType));
+//       }}
+//     >
+//       <p className="uppercase font-medium text-sm tracking-[.1px] select-none">{orderType}</p>
+//     </div>
+//   );
+// }
 
-function EstimatedTotalOrQuantity() {
-  const { quote, quoteDescription } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
-  const amount = quote?.toAmount;
-  const symbol = quote?.toToken?.symbol;
-  return (
-    <div className="flex content-between w-full text-white pb-3 px-2">
-      {amount && (
-        <>
-          <p className="grow text-left">Total:</p>
-          <p className="">
-            ~ {truncateWithPrecision(amount, 2)} {symbol}
-          </p>
-          <InfoTooltip content={quoteDescription} />
-        </>
-      )}
-    </div>
-  );
-}
+// function EstimatedTotalOrQuantity() {
+//   const { quote, quoteDescription } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
+//   const amount = quote?.toAmount;
+//   const symbol = quote?.toToken?.symbol;
+//   return (
+//     <div className="flex content-between w-full text-white pb-3 px-2">
+//       {amount && (
+//         <>
+//           <p className="grow text-left">Total:</p>
+//           <p className="">
+//             ~ {truncateWithPrecision(amount, 2)} {symbol}
+//           </p>
+//           <InfoTooltip content={quoteDescription} />
+//         </>
+//       )}
+//     </div>
+//   );
+// }
 
-function InfoTooltip({ content, iconColor = 'text-white' }: { iconColor?: string; content?: string }) {
-  if (!content) {
-    return <></>;
-  }
-  return (
-    <div className="my-auto ml-2 tooltip text-3xl before:bg-base-300 z-10 font-normal normal-case" data-tip={content}>
-      {/* <AiOutlineInfoCircle className={`${iconColor} text-sm`} /> */}
-    </div>
-  );
-}
+// function InfoTooltip({ content, iconColor = 'text-white' }: { iconColor?: string; content?: string }) {
+//   if (!content) {
+//     return <></>;
+//   }
+//   return (
+//     <div className="my-auto ml-2 tooltip text-3xl before:bg-base-300 z-10 font-normal normal-case" data-tip={content}>
+//       {/* <AiOutlineInfoCircle className={`${iconColor} text-sm`} /> */}
+//     </div>
+//   );
+// }
 
-function MarketOrderDisclaimer() {
-  return (
-    <div className="">
-      <p className="text-xs tracking-[0.5px] opacity-70 pb-6 border-b-[1px] border-b-[rgba(255,255,255,0.2)]">
-        display value exact at
-      </p>
-    </div>
-  );
-}
+// function MarketOrderDisclaimer() {
+//   return (
+//     <div className="">
+//       <p className="text-xs tracking-[0.5px] opacity-70 pb-6 border-b-[1px] border-b-[rgba(255,255,255,0.2)]">
+//         display value exact at
+//       </p>
+//     </div>
+//   );
+// }
 
+// function SubmitButton() {
+//   const isClient = useHydrationErrorFix(); // to fix HydrationError
+//   const dispatch = useAppDispatch();
+//   const {
+//     side,
+//     type,
+//     token1,
+//     quote,
+//     quoteDescription,
+//     quoteError,
+//     validationPrice,
+//     validationToken1,
+//     validationToken2,
+//   } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
+//   const { isConnected } = useAppSelector((state: { radix: any; }) => state.radix);
+//   const hasQuote = quote !== undefined;
+//   const hasQuoteError = quoteError !== undefined;
+//   const isLimitOrder = type === OrderType.LIMIT;
+//   const isBuyOrder = side === OrderSide.BUY;
+//   const disabled =
+//     !hasQuote ||
+//     hasQuoteError ||
+//     !isConnected;
 
-function SubmitButton() {
-  const isClient = useHydrationErrorFix(); // to fix HydrationError
-  const dispatch = useAppDispatch();
-  const {
-    side,
-    type,
-    token1,
-    quote,
-    quoteDescription,
-    quoteError,
-    validationPrice,
-    validationToken1,
-    validationToken2,
-  } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
-  const { isConnected } = useAppSelector((state: { radix: any; }) => state.radix);
-  const hasQuote = quote !== undefined;
-  const hasQuoteError = quoteError !== undefined;
-  const isLimitOrder = type === OrderType.LIMIT;
-  const isBuyOrder = side === OrderSide.BUY;
-  const disabled =
-    !hasQuote ||
-    hasQuoteError ||
-    !isConnected;
+//   // Fix HydrationError
+//   if (!isClient) return <></>;
 
-  // Fix HydrationError
-  if (!isClient) return <></>;
+//   return (
+//     <button
+//       className={`w-full h-[40px] p-3 my-6 rounded ${
+//         disabled
+//           ? 'bg-[#232629] text-[#474D52] opacity-50'
+//           : side === 'BUY'
+//             ? 'bg-dexter-green text-black opacity-100'
+//             : 'bg-dexter-red text-white opacity-100'
+//       }`}
+//       onClick={async (e) => {
+//         if (!isConnected) {
+//           alert('connect_wallet_to_trade');
+//           return;
+//         }
+//         if (disabled) {
+//           return;
+//         }
+//         e.stopPropagation();
+//         // DToads.promise(
+//         //   // Function input, with following state-to-toast mapping
+//         //   // -> pending: loading toast
+//         //   // -> rejceted: error toast
+//         //   // -> resolved: success toast
+//         //   async () => {
+//         //     // const action = await dispatch(submitOrder());
+//         //     // if (!action.type.endsWith('fulfilled')) {
+//         //     //   // Transaction was not fulfilled (e.g. userRejected or userCanceled)
+//         //     //   throw new Error('Transaction failed due to user action.');
+//         //     // } else if ((action.payload as any)?.status === 'ERROR') {
+//         //     //   // Transaction was fulfilled but failed (e.g. submitted onchain failure)
+//         //     //   throw new Error('Transaction failed onledger');
+//         //     // }
+//         //     // dispatch(orderInputSlice.actions.resetUserInput());
+//         //     // dispatch(fetchBalances());
+//         //   },
+//         //   'submitting_order', // Loading message
+//         //   'order_submitted', // success message
+//         //   'failed_to_submit_order', // error message
+//         // );
+//       }}
+//     >
+//       <div className="flex justify-center items-center">
+//         <div className="font-bold text-sm tracking-[.1px] uppercase">Submit</div>
+//         {isLimitOrder && isConnected && (
+//           <InfoTooltip iconColor={isBuyOrder ? 'text-black' : 'text-white'} content={quoteDescription || undefined} />
+//         )}
+//       </div>
+//     </button>
+//   );
+// }
 
-  return (
-    <button
-      className={`w-full h-[40px] p-3 my-6 rounded ${
-        disabled
-          ? 'bg-[#232629] text-[#474D52] opacity-50'
-          : side === 'BUY'
-            ? 'bg-dexter-green text-black opacity-100'
-            : 'bg-dexter-red text-white opacity-100'
-      }`}
-      onClick={async (e) => {
-        if (!isConnected) {
-          alert('connect_wallet_to_trade');
-          return;
-        }
-        if (disabled) {
-          return;
-        }
-        e.stopPropagation();
-        DToads.promise(
-          // Function input, with following state-to-toast mapping
-          // -> pending: loading toast
-          // -> rejceted: error toast
-          // -> resolved: success toast
-          async () => {
-            // const action = await dispatch(submitOrder());
-            // if (!action.type.endsWith('fulfilled')) {
-            //   // Transaction was not fulfilled (e.g. userRejected or userCanceled)
-            //   throw new Error('Transaction failed due to user action.');
-            // } else if ((action.payload as any)?.status === 'ERROR') {
-            //   // Transaction was fulfilled but failed (e.g. submitted onchain failure)
-            //   throw new Error('Transaction failed onledger');
-            // }
-            // dispatch(orderInputSlice.actions.resetUserInput());
-            // dispatch(fetchBalances());
-          },
-          'submitting_order', // Loading message
-          'order_submitted', // success message
-          'failed_to_submit_order', // error message
-        );
-      }}
-    >
-      <div className="flex justify-center items-center">
-        <div className="font-bold text-sm tracking-[.1px] uppercase">Submit</div>
-        {isLimitOrder && isConnected && (
-          <InfoTooltip iconColor={isBuyOrder ? 'text-black' : 'text-white'} content={quoteDescription || undefined} />
-        )}
-      </div>
-    </button>
-  );
-}
+// function UserInputContainer() {
+//   const { side, type } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
 
-function UserInputContainer() {
-  const { side, type } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
+//   const isBuyOrder = side === 'BUY';
+//   const isSellOrder = side === 'SELL';
 
-
-  const isBuyOrder = side === 'BUY';
-  const isSellOrder = side === 'SELL';
-
-  return (
-    <div className="bg-base-100 px-5 pb-5 rounded-b">
-      <CurrencyInputGroup userAction={UserAction.UPDATE_PRICE} />
-      <CurrencyInputGroup userAction={UserAction.SET_TOKEN_1} />
-      <PercentageSlider />
-      <CurrencyInputGroup userAction={UserAction.SET_TOKEN_2} />
-    </div>
-  );
-}
+//   return (
+//     <div className="bg-base-100 px-5 pb-5 rounded-b">
+//       <CurrencyInputGroup userAction={UserAction.UPDATE_PRICE} />
+//       <CurrencyInputGroup userAction={UserAction.SET_TOKEN_1} />
+//       <PercentageSlider />
+//       <CurrencyInputGroup userAction={UserAction.SET_TOKEN_2} />
+//     </div>
+//   );
+// }
 
 // Helper function that get config for each possible userAction
 // (SET_TOKEN_1, SET_TOKEN_2, UPDATE_PRICE)
@@ -362,37 +362,37 @@ function CurrencyInputGroupSettings(
 ): CurrencyInputGroupConfig {
   const dispatch = useAppDispatch();
   const { side, type, token1, token2, price, specifiedToken, validationPrice, validationToken1, validationToken2 } =
-    useAppSelector((state: { orderInput: any; }) => state.orderInput);
-    const balanceToken1 = useAppSelector((state: any) => 0)
-    const balanceToken2 = useAppSelector((state: any) => 0);
-//   const balanceToken2 = useAppSelector((state: any) => selectBalanceByAddress(state, token2.address)) || 0;
-  const bestBuy = useAppSelector((state: { orderBook: { bestBuy: any; }; }) => state.orderBook.bestBuy) || 0;
-  const bestSell = useAppSelector((state: { orderBook: { bestSell: any; }; }) => state.orderBook.bestSell) || 0;
+    useAppSelector((state: { orderInput: any }) => state.orderInput);
+  const balanceToken1 = useAppSelector((state: any) => 0);
+  const balanceToken2 = useAppSelector((state: any) => 0);
+  //   const balanceToken2 = useAppSelector((state: any) => selectBalanceByAddress(state, token2.address)) || 0;
+  const bestBuy = useAppSelector((state: { orderBook: { bestBuy: any } }) => state.orderBook.bestBuy) || 0;
+  const bestSell = useAppSelector((state: { orderBook: { bestSell: any } }) => state.orderBook.bestSell) || 0;
 
   const updateToken1 = (value: number) => {
-    dispatch(
-    //   orderInputSlice.actions.setTokenAmount({
-    //     amount: value,
-    //     bestBuy,
-    //     bestSell,
-    //     balanceToken1: balanceToken1,
-    //     balanceToken2: balanceToken2,
-    //     specifiedToken: SpecifiedToken.TOKEN_1,
-    //   }),
-    );
+    // dispatch(
+    // //   orderInputSlice.actions.setTokenAmount({
+    // //     amount: value,
+    // //     bestBuy,
+    // //     bestSell,
+    // //     balanceToken1: balanceToken1,
+    // //     balanceToken2: balanceToken2,
+    // //     specifiedToken: SpecifiedToken.TOKEN_1,
+    // //   }),
+    // );
   };
 
   const updateToken2 = (value: number) => {
-    dispatch(
-    //   orderInputSlice.actions.setTokenAmount({
-    //     amount: value,
-    //     bestBuy,
-    //     bestSell,
-    //     balanceToken1: balanceToken1,
-    //     balanceToken2: balanceToken2,
-    //     specifiedToken: SpecifiedToken.TOKEN_2,
-    //   }),
-    );
+    // dispatch(
+    // //   orderInputSlice.actions.setTokenAmount({
+    // //     amount: value,
+    // //     bestBuy,
+    // //     bestSell,
+    // //     balanceToken1: balanceToken1,
+    // //     balanceToken2: balanceToken2,
+    // //     specifiedToken: SpecifiedToken.TOKEN_2,
+    // //   }),
+    // );
   };
 
   // Specifies the amount in % of available balance; If the token to specify is
@@ -404,7 +404,7 @@ function CurrencyInputGroupSettings(
     }
     const targetAmount = Math.min(
       isXRD ? balanceToken1 - XRD_FEE_ALLOWANCE : balanceToken1,
-    //   Calculator.divide(Calculator.multiply(balanceToken1, percentage), 100),
+      //   Calculator.divide(Calculator.multiply(balanceToken1, percentage), 100),
     );
     // TODO: revert truncating to 8th decimal once adex has fixed adex.createExchangeOrderTx bug
     const targetAmountTruncated = truncateWithPrecision(targetAmount, 8);
@@ -429,7 +429,7 @@ function CurrencyInputGroupSettings(
     }
     const targetAmount = Math.min(
       isXRD ? balanceToken2 - XRD_FEE_ALLOWANCE : balanceToken2,
-    //   Calculator.divide(Calculator.multiply(balanceToken2, percentage), 100),
+      //   Calculator.divide(Calculator.multiply(balanceToken2, percentage), 100),
     );
     // TODO: revert truncating to 8th decimal once adex has fixed adex.createExchangeOrderTx bug
     const targetAmountTruncated = truncateWithPrecision(targetAmount, 8);
@@ -459,14 +459,14 @@ function CurrencyInputGroupSettings(
   let token2amount = token2.amount;
   // For limit orders, tokens that are not specified are derived using price
   // Note: this is only done for display, the state of these tokens will not be set.
-//   if (type === 'LIMIT') {
-//     if (specifiedToken === SpecifiedToken.TOKEN_1 && token1amount >= 0) {
-//       token2amount = Calculator.multiply(token1.amount, price);
-//     }
-//     if (specifiedToken === SpecifiedToken.TOKEN_2) {
-//       token1amount = price <= 0 ? 0 : Calculator.divide(token2.amount, price);
-//     }
-//   }
+  //   if (type === 'LIMIT') {
+  //     if (specifiedToken === SpecifiedToken.TOKEN_1 && token1amount >= 0) {
+  //       token2amount = Calculator.multiply(token1.amount, price);
+  //     }
+  //     if (specifiedToken === SpecifiedToken.TOKEN_2) {
+  //       token1amount = price <= 0 ? 0 : Calculator.divide(token2.amount, price);
+  //     }
+  //   }
 
   const configMap: { [key in UserAction]: CurrencyInputGroupConfig } = {
     SET_TOKEN_1: {
@@ -521,7 +521,7 @@ function CurrencyInputGroupSettings(
 
 // Container with main label (top left), secondary label (top right) and input field
 function CurrencyInputGroup({ disabled = false, userAction }: CurrencyInputGroupProps): JSX.Element | null {
-  const { type } = useAppSelector((state: { orderInput: any; }) => state.orderInput);
+  const { type } = useAppSelector((state: { orderInput: any }) => state.orderInput);
   const { label, currency, value, updateValue, inputValidation, secondaryLabelProps } = CurrencyInputGroupSettings(
     userAction,
     disabled,
