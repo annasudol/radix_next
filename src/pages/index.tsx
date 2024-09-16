@@ -13,14 +13,16 @@ export default function IndexPage() {
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
         <div className="inline-block max-w-lg text-center justify-center">
-          <span className={title()}>Make&nbsp;</span>
-          <span className={title({ color: 'violet' })}>beautiful&nbsp;</span>
+          <span className={title()}>Trust in Your&nbsp;</span>
+          <span className={title({ color: 'violet' })}>Giving.&nbsp;</span>
           <br />
-          <span className={title()}>websites regardless of your design experience.</span>
-          <div className={subtitle({ class: 'mt-4' })}>Beautiful, fast and modern React UI library.</div>
+          <span className={title()}>Donate with Confidence</span>
+          <div className={subtitle({ class: 'mt-4' })}>
+            Online fundraising app for the people and charities you can trust
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        {/* <div className="flex gap-3">
           <Link
             isExternal
             className={buttonStyles({
@@ -48,7 +50,7 @@ export default function IndexPage() {
               Get started by editing <Code color="primary">pages/index.tsx</Code>
             </span>
           </Snippet>
-        </div>
+        </div> */}
       </section>
     </DefaultLayout>
   );
