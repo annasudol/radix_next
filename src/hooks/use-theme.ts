@@ -1,46 +1,62 @@
-// originally written by @imoaazahmed
+import { useDispatch, useSelector } from "react-redux";
+import type { TypedUseSelectorHook } from "react-redux";
+import type { RootState, AppDispatch } from "./state/store";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  getLocalStoragePaginationValue,
+  setLocalStoragePaginationValue,
+} from "utils";
 
-import { useEffect, useMemo, useState } from 'react';
+// https://redux-toolkit.js.org/tutorials/typescript#define-typed-hooks
+export const useAppDispatch: () => AppDispatch = useDispatch;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-const ThemeProps = {
-  key: 'theme',
-  light: 'light',
-  dark: 'dark',
-} as const;
+// A custom hook that returns the translation function
 
-type Theme = typeof ThemeProps.light | typeof ThemeProps.dark;
-
-export const useTheme = (defaultTheme?: Theme) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = localStorage.getItem(ThemeProps.key) as Theme | null;
-
-    return storedTheme || (defaultTheme ?? ThemeProps.light);
-  });
-
-  const isDark = useMemo(() => {
-    return theme === ThemeProps.dark;
-  }, [theme]);
-
-  const isLight = useMemo(() => {
-    return theme === ThemeProps.light;
-  }, [theme]);
-
-  const _setTheme = (theme: Theme) => {
-    localStorage.setItem(ThemeProps.key, theme);
-    document.documentElement.classList.remove(ThemeProps.light, ThemeProps.dark);
-    document.documentElement.classList.add(theme);
-    setTheme(theme);
-  };
-
-  const setLightTheme = () => _setTheme(ThemeProps.light);
-
-  const setDarkTheme = () => _setTheme(ThemeProps.dark);
-
-  const toggleTheme = () => (theme === ThemeProps.dark ? setLightTheme() : setDarkTheme());
+// Hook to fix hydration errors by delaying rendering until client-side mount
+export const useHydrationErrorFix = () => {
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    _setTheme(theme);
-  });
+    setIsClient(true);
+  }, []);
 
-  return { theme, isDark, isLight, setLightTheme, setDarkTheme, toggleTheme };
+  return isClient;
 };
+
+export function usePagination<T>(data: T[], paginationId?: string) {
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const [pageSize, setPageSize] = useState(
+    getLocalStoragePaginationValue() ?? 20
+  );
+  const totalDataLength = useMemo(() => data.length, [data]);
+
+  const startIndex = useMemo(
+    () => currentPage * pageSize,
+    [currentPage, pageSize]
+  );
+  const endIndex = useMemo(() => startIndex + pageSize, [startIndex, pageSize]);
+
+  const paginatedData = useMemo(
+    () => data.slice(startIndex, endIndex),
+    [data, startIndex, endIndex]
+  );
+
+  const updatePsize = useCallback(
+    (psize: number) => {
+      setLocalStoragePaginationValue(psize, paginationId);
+      setPageSize(psize);
+    },
+    [paginationId, setPageSize]
+  );
+
+  return {
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize: updatePsize,
+    paginatedData,
+    totalDataLength,
+  };
+}

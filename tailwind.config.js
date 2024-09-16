@@ -13,6 +13,8 @@ module.exports = {
     colors: {
       mainDark: '#141414',
       mainYellow: '#fcd435',
+      mainGreen: '#2cbc84',
+      mainRed: '#f6475c',
     },
   },
   darkMode: 'class',
