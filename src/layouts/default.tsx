@@ -2,8 +2,8 @@ import { Link } from '@nextui-org/link';
 
 import { Navbar } from '@/components/navbar';
 import { Provider } from 'react-redux';
-import { useEffect } from 'react';
-import { initializeSubscriptions, unsubscribeAll } from '../subscriptions';
+// import { useEffect } from 'react';
+// import { initializeSubscriptions, unsubscribeAll } from '../subscriptions';
 import { store } from '../state/store';
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
