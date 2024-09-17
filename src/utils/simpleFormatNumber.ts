@@ -11,9 +11,9 @@
  * @returns {string} The formatted number as a string.
  */
 export function simpleFormatNumber(num: number, maxDigit: number = 1): string {
-  const formatter = new Intl.NumberFormat("en", {
-    notation: "compact",
+  const formatter = new Intl.NumberFormat('en', {
+    notation: 'compact',
     maximumFractionDigits: maxDigit,
   });
-  return formatter.format(num).replaceAll(".", ",");
+  return formatter.format(num).replaceAll('.', ',');
 }

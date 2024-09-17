@@ -1,8 +1,8 @@
-import * as adex from "alphadex-sdk-js";
-import { PayloadAction, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { RootState } from "./store";
-import { getGatewayApiClientOrThrow, getRdt } from "../subscriptions";
-import { setQueryParam, updateIconIfNeeded } from "../utils";
+import * as adex from 'alphadex-sdk-js';
+import { PayloadAction, createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { RootState } from './store';
+import { getGatewayApiClientOrThrow, getRdt } from '../subscriptions';
+import { setQueryParam, updateIconIfNeeded } from '../utils';
 
 export const AMOUNT_MAX_DECIMALS = adex.AMOUNT_MAX_DECIMALS;
 
@@ -25,16 +25,16 @@ interface SelectPairPayload {
 }
 
 export const initalTokenInfo: TokenInfo = {
-  address: "",
-  symbol: "",
-  name: "",
-  iconUrl: "",
+  address: '',
+  symbol: '',
+  name: '',
+  iconUrl: '',
   decimals: 8,
 };
 
 const initialState: PairSelectorState = {
-  name: "",
-  address: "",
+  name: '',
+  address: '',
   token1: { ...initalTokenInfo },
   token2: { ...initalTokenInfo },
   pairsList: [],
@@ -46,11 +46,11 @@ export const fetchBalances = createAsyncThunk<
   {
     state: RootState;
   }
->("pairSelector/fetchBalances", async (_arg, thunkAPI) => {
+>('pairSelector/fetchBalances', async (_arg, thunkAPI) => {
   const dispatch = thunkAPI.dispatch;
   const state = thunkAPI.getState();
 
-  if (state.pairSelector.address === "") {
+  if (state.pairSelector.address === '') {
     return undefined;
   }
 
@@ -64,23 +64,20 @@ export const fetchBalances = createAsyncThunk<
       try {
         let response;
         if (token.address) {
-          response =
-            await gatewayApiClient.state.innerClient.entityFungibleResourceVaultPage(
-              {
-                stateEntityFungibleResourceVaultsPageRequest: {
-                  address: state.radix.selectedAccount?.address,
-                  // eslint-disable-next-line camelcase
-                  resource_address: token.address,
-                },
-              }
-            );
+          response = await gatewayApiClient.state.innerClient.entityFungibleResourceVaultPage({
+            stateEntityFungibleResourceVaultsPageRequest: {
+              address: state.radix.selectedAccount?.address,
+              // eslint-disable-next-line camelcase
+              resource_address: token.address,
+            },
+          });
         }
         // if there are no items in response, set the balance to 0
-        const balance = parseFloat(response?.items[0]?.amount || "0");
+        const balance = parseFloat(response?.items[0]?.amount || '0');
         dispatch(pairSelectorSlice.actions.setBalance({ balance, token }));
       } catch (error) {
         dispatch(pairSelectorSlice.actions.setBalance({ balance: 0, token }));
-        throw new Error("Error getting data from Radix gateway");
+        throw new Error('Error getting data from Radix gateway');
       }
     }
   }
@@ -89,15 +86,12 @@ export const fetchBalances = createAsyncThunk<
 });
 
 export const pairSelectorSlice = createSlice({
-  name: "pairSelector",
+  name: 'pairSelector',
   initialState,
 
   // synchronous reducers
   reducers: {
-    updateAdex: (
-      state: PairSelectorState,
-      action: PayloadAction<adex.StaticState>
-    ) => {
+    updateAdex: (state: PairSelectorState, action: PayloadAction<adex.StaticState>) => {
       const adexState = action.payload;
 
       state.token1.decimals = adexState.currentPairInfo.token1MaxDecimals;
@@ -121,22 +115,16 @@ export const pairSelectorSlice = createSlice({
         return pair;
       });
     },
-    selectPair: (
-      state: PairSelectorState,
-      action: PayloadAction<SelectPairPayload>
-    ) => {
+    selectPair: (state: PairSelectorState, action: PayloadAction<SelectPairPayload>) => {
       const { pairAddress, pairName } = action.payload;
       adex.clientState.currentPairAddress = pairAddress;
       if (pairName) {
         state.name = pairName; // Prevent empty pairname during loading
-        setQueryParam("pair", formatPairName(pairName));
+        setQueryParam('pair', formatPairName(pairName));
       }
     },
 
-    setBalance: (
-      state: PairSelectorState,
-      action: PayloadAction<{ token: TokenInfo; balance: number }>
-    ) => {
+    setBalance: (state: PairSelectorState, action: PayloadAction<{ token: TokenInfo; balance: number }>) => {
       const { token, balance } = action.payload;
       if (token.address === state.token1.address) {
         state.token1 = { ...state.token1, balance };
@@ -154,16 +142,13 @@ export const pairSelectorSlice = createSlice({
     builder.addCase(fetchBalances.rejected, (state, action) => {
       state.token1.balance = undefined;
       state.token2.balance = undefined;
-      console.error(
-        "pairSelector/fetchBalances rejected:",
-        action.error.message
-      );
+      console.error('pairSelector/fetchBalances rejected:', action.error.message);
     });
   },
 });
 
 function formatPairName(pairName: string): string {
-  return pairName?.toLowerCase().split("/").join("-");
+  return pairName?.toLowerCase().split('/').join('-');
 }
 
 export const { updateAdex, selectPair } = pairSelectorSlice.actions;

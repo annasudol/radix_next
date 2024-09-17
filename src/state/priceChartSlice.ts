@@ -1,13 +1,7 @@
-import * as adex from "alphadex-sdk-js";
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import {
-  CandlestickData,
-  IChartApi,
-  UTCTimestamp,
-  ISeriesApi,
-  SeriesOptionsMap,
-} from "lightweight-charts";
-import { AppDispatch } from "./store";
+import * as adex from 'alphadex-sdk-js';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { CandlestickData, IChartApi, UTCTimestamp, ISeriesApi, SeriesOptionsMap } from 'lightweight-charts';
+import { AppDispatch } from './store';
 
 export interface OHLCVData extends CandlestickData {
   value: number;
@@ -53,9 +47,7 @@ function cleanData(data: OHLCVData[]): OHLCVData[] {
   }
 
   // Convert the map values back to an array and sort it by time
-  const cleanedData = Array.from(dataMap.values()).sort(
-    (a, b) => (a.time as number) - (b.time as number)
-  );
+  const cleanedData = Array.from(dataMap.values()).sort((a, b) => (a.time as number) - (b.time as number));
 
   return cleanedData;
 }
@@ -64,14 +56,12 @@ function cleanData(data: OHLCVData[]): OHLCVData[] {
 export function handleCrosshairMove(
   chart: IChartApi,
   data: OHLCVData[],
-  volumeSeries: ISeriesApi<keyof SeriesOptionsMap>
+  volumeSeries: ISeriesApi<keyof SeriesOptionsMap>,
 ) {
   return (dispatch: AppDispatch) => {
     chart.subscribeCrosshairMove((param) => {
       if (param.time) {
-        const currentIndex = data.findIndex(
-          (candle) => candle.time === param.time
-        );
+        const currentIndex = data.findIndex((candle) => candle.time === param.time);
 
         if (currentIndex >= 0 && currentIndex < data.length) {
           const currentData = data[currentIndex];
@@ -82,7 +72,7 @@ export function handleCrosshairMove(
             setLegendPercChange({
               currentOpen: currentData.open,
               currentClose: currentData.close,
-            })
+            }),
           );
           dispatch(setLegendCurrentVolume(volumeData ? volumeData.value : 0));
         }
@@ -107,7 +97,7 @@ function convertAlphaDEXData(data: adex.Candle[]): OHLCVData[] {
 }
 
 export const priceChartSlice = createSlice({
-  name: "priceChart",
+  name: 'priceChart',
   initialState,
   reducers: {
     setCandlePeriod: (state, action: PayloadAction<string>) => {
@@ -128,10 +118,7 @@ export const priceChartSlice = createSlice({
         state.legendChange = null;
       }
     },
-    setLegendPercChange: (
-      state,
-      action: PayloadAction<{ currentOpen: number; currentClose: number }>
-    ) => {
+    setLegendPercChange: (state, action: PayloadAction<{ currentOpen: number; currentClose: number }>) => {
       const { currentOpen, currentClose } = action.payload;
       if (currentOpen !== null && currentClose !== null) {
         const difference = currentClose - currentOpen;
@@ -152,11 +139,7 @@ export const priceChartSlice = createSlice({
         state.legendCandlePrice = latestOHLCVData;
         state.legendChange = latestOHLCVData.close - latestOHLCVData.open;
         state.legendPercChange = parseFloat(
-          (
-            ((latestOHLCVData.close - latestOHLCVData.open) /
-              latestOHLCVData.open) *
-            100
-          ).toFixed(2)
+          (((latestOHLCVData.close - latestOHLCVData.open) / latestOHLCVData.open) * 100).toFixed(2),
         );
         state.legendCurrentVolume = latestOHLCVData.value;
       }

@@ -1,10 +1,10 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { orderInputSlice } from "./orderInputSlice";
-import { pairSelectorSlice } from "./pairSelectorSlice";
-import { orderBookSlice } from "./orderBookSlice";
-import { priceChartSlice } from "./priceChartSlice";
-import { radixSlice } from "./radixSlice";
-import { priceInfoSlice } from "./priceInfoSlice";
+import { configureStore } from '@reduxjs/toolkit';
+import { orderInputSlice } from './orderInputSlice';
+import { pairSelectorSlice } from './pairSelectorSlice';
+import { orderBookSlice } from './orderBookSlice';
+import { priceChartSlice } from './priceChartSlice';
+import { radixSlice } from './radixSlice';
+import { priceInfoSlice } from './priceInfoSlice';
 
 export const store = configureStore({
   reducer: {

@@ -1,6 +1,6 @@
-import * as adex from "alphadex-sdk-js";
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { RootState } from "./store";
+import * as adex from 'alphadex-sdk-js';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { RootState } from './store';
 
 export interface PriceInfoState {
   lastPrice: number;
@@ -25,22 +25,18 @@ const initialState: PriceInfoState = {
 };
 
 export const priceInfoSlice = createSlice({
-  name: "priceInfo",
+  name: 'priceInfo',
   initialState,
   reducers: {
     updatePriceInfo: (state, action: PayloadAction<adex.StaticState>) => {
       const currentPairInfo = action.payload.currentPairInfo;
       state.lastPrice = currentPairInfo.lastPrice;
       state.open24h = currentPairInfo.open24h;
-      state.change24h =
-        ((currentPairInfo.lastPrice - currentPairInfo.open24h) /
-          currentPairInfo.open24h) *
-        100;
+      state.change24h = ((currentPairInfo.lastPrice - currentPairInfo.open24h) / currentPairInfo.open24h) * 100;
       state.high24h = currentPairInfo.high24h;
       state.low24h = currentPairInfo.low24h;
       state.value24h = currentPairInfo.value24h;
-      state.isNegativeOrZero =
-        currentPairInfo.lastPrice - currentPairInfo.open24h <= 0;
+      state.isNegativeOrZero = currentPairInfo.lastPrice - currentPairInfo.open24h <= 0;
     },
   },
 });

@@ -1,7 +1,6 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import * as adex from "alphadex-sdk-js";
-import { RootState } from "./store";
-
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import * as adex from 'alphadex-sdk-js';
+import { RootState } from './store';
 
 export interface OrderBookRowProps {
   barColor?: string;
@@ -41,16 +40,16 @@ export const MAX_ROWS = 13;
 
 export function toOrderBookRowProps(
   adexOrderbookLines: adex.OrderbookLine[],
-  side: "sell" | "buy",
-  grouping: number
+  side: 'sell' | 'buy',
+  grouping: number,
 ): OrderBookRowProps[] {
   const props: OrderBookRowProps[] = [];
   let adexRows = [...adexOrderbookLines]; // copy the array so we can mutate it
 
-  let barColor = "mainGreen";
-  if (side === "sell") {
+  let barColor = 'mainGreen';
+  if (side === 'sell') {
     adexRows.reverse();
-    barColor = "mainRed"
+    barColor = 'mainRed';
   }
   let groupedArray;
   if (grouping > 0) {
@@ -60,9 +59,7 @@ export function toOrderBookRowProps(
       groupedArray = adexRows.reduce((result: adex.OrderbookLine[], item) => {
         const key = roundToGroup(item.price);
         if (key > 0) {
-          const foundItem = result.find(
-            (x: adex.OrderbookLine) => x.price === key
-          ); // note that we don't specify the type here
+          const foundItem = result.find((x: adex.OrderbookLine) => x.price === key); // note that we don't specify the type here
           let existingItem: adex.OrderbookLine; // declare the variable without assigning it
           if (foundItem !== undefined) {
             // if the foundItem is not undefined, we can assign it safely
@@ -112,14 +109,14 @@ export function toOrderBookRowProps(
 
   // If there are fewer than MAX_ROWS orders, fill the remaining rows with empty values
   while (props.length < MAX_ROWS) {
-    props.push({ absentOrders: "\u00A0" });
+    props.push({ absentOrders: '\u00A0' });
   }
 
   if (adexOrderbookLines.length === 0) {
     props[2].absentOrders = `No open ${side} orders`;
   }
 
-  if (side === "sell") {
+  if (side === 'sell') {
     props.reverse();
   }
 
@@ -127,7 +124,7 @@ export function toOrderBookRowProps(
 }
 
 export const orderBookSlice = createSlice({
-  name: "orderBook",
+  name: 'orderBook',
   initialState,
 
   // synchronous reducers
@@ -136,16 +133,8 @@ export const orderBookSlice = createSlice({
       const adexState = action.payload;
       const grouping = state.grouping;
 
-      const sells = toOrderBookRowProps(
-        adexState.currentPairOrderbook.sells,
-        "sell",
-        grouping || 0
-      );
-      const buys = toOrderBookRowProps(
-        adexState.currentPairOrderbook.buys,
-        "buy",
-        grouping || 0
-      );
+      const sells = toOrderBookRowProps(adexState.currentPairOrderbook.sells, 'sell', grouping || 0);
+      const buys = toOrderBookRowProps(adexState.currentPairOrderbook.buys, 'buy', grouping || 0);
       let bestSell = sells[sells.length - 1]?.price || null;
       let bestBuy = buys[0]?.price || null;
 
@@ -173,16 +162,8 @@ export const orderBookSlice = createSlice({
         state.grouping = action.payload;
       }
 
-      const sells = toOrderBookRowProps(
-        adex.clientState.currentPairOrderbook.sells,
-        "sell",
-        state.grouping || 0
-      );
-      const buys = toOrderBookRowProps(
-        adex.clientState.currentPairOrderbook.buys,
-        "buy",
-        state.grouping || 0
-      );
+      const sells = toOrderBookRowProps(adex.clientState.currentPairOrderbook.sells, 'sell', state.grouping || 0);
+      const buys = toOrderBookRowProps(adex.clientState.currentPairOrderbook.buys, 'buy', state.grouping || 0);
 
       let bestSell = sells[sells.length - 1]?.price || null;
       let bestBuy = buys[0]?.price || null;

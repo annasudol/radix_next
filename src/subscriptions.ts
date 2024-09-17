@@ -1,10 +1,6 @@
-import { Subscription } from "rxjs";
-import {
-    DataRequestBuilder,
-    RadixDappToolkit,
-    RadixNetwork
-} from "@radixdlt/radix-dapp-toolkit";
-import { GatewayApiClient } from "@radixdlt/babylon-gateway-api-sdk";
+import { Subscription } from 'rxjs';
+import { DataRequestBuilder, RadixDappToolkit, RadixNetwork } from '@radixdlt/radix-dapp-toolkit';
+import { GatewayApiClient } from '@radixdlt/babylon-gateway-api-sdk';
 // import * as adex from "alphadex-sdk-js";
 // import { radixSlice, WalletData } from "./state/radixSlice";
 // import { fetchBalances } from "./state/pairSelectorSlice";
@@ -21,31 +17,31 @@ let rdtInstance: null | RDT = null;
 let gatewayApiClient: null | GatewayApiClient = null;
 
 export function getRdt() {
-    return rdtInstance;
+  return rdtInstance;
 }
 
 export function getGatewayApiClient() {
-    return gatewayApiClient;
+  return gatewayApiClient;
 }
 
 export function getRdtOrThrow() {
-    const rdt = getRdt();
-    if (!rdt) {
-        throw new Error("RDT initialization failed");
-    }
-    return rdt;
+  const rdt = getRdt();
+  if (!rdt) {
+    throw new Error('RDT initialization failed');
+  }
+  return rdt;
 }
 
 export function getGatewayApiClientOrThrow() {
-    const gatewayApiClient = getGatewayApiClient();
-    if (!gatewayApiClient) {
-        throw new Error("GatewayApiClient initialization failed");
-    }
-    return gatewayApiClient;
+  const gatewayApiClient = getGatewayApiClient();
+  if (!gatewayApiClient) {
+    throw new Error('GatewayApiClient initialization failed');
+  }
+  return gatewayApiClient;
 }
 
 function setRdt(rdt: RDT) {
-    rdtInstance = rdt;
+  rdtInstance = rdt;
 }
 
 let subs: Subscription[] = [];
@@ -98,8 +94,8 @@ let subs: Subscription[] = [];
 // }
 
 export function unsubscribeAll() {
-    subs.forEach((sub) => {
-        sub.unsubscribe();
-    });
-    subs = [];
+  subs.forEach((sub) => {
+    sub.unsubscribe();
+  });
+  subs = [];
 }

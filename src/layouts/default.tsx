@@ -7,12 +7,12 @@ import { Provider } from 'react-redux';
 import { store } from '../state/store';
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
-    // useEffect(() => {
-    //   initializeSubscriptions(store);
-    //   return () => {
-    //     unsubscribeAll();
-    //   };
-    // }, []);
+  // useEffect(() => {
+  //   initializeSubscriptions(store);
+  //   return () => {
+  //     unsubscribeAll();
+  //   };
+  // }, []);
   return (
     <Provider store={store}>
       <div className="h-screen prose md:prose-lg lg:prose-xl max-w-none flex flex-col">

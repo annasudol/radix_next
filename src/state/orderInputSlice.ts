@@ -1,49 +1,40 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import {
-  createAsyncThunk,
-  createSelector,
-  createSlice,
-} from "@reduxjs/toolkit";
-import * as adex from "alphadex-sdk-js";
-import { RootState } from "./store";
-import { SdkResult } from "alphadex-sdk-js/lib/models/sdk-result";
-import { getTransactionDetail } from "alphadex-sdk-js/lib/radix-api";
-import { RDT, getRdtOrThrow } from "../subscriptions";
-import { fetchBalances } from "./pairSelectorSlice";
-import {
-  getPrecision,
-  toFixedRoundDown,
-  truncateWithPrecision,
-  updateIconIfNeeded,
-} from "../utils";
-import { Calculator } from "../services/Calculator";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit';
+import * as adex from 'alphadex-sdk-js';
+import { RootState } from './store';
+import { SdkResult } from 'alphadex-sdk-js/lib/models/sdk-result';
+import { getTransactionDetail } from 'alphadex-sdk-js/lib/radix-api';
+import { RDT, getRdtOrThrow } from '../subscriptions';
+import { fetchBalances } from './pairSelectorSlice';
+import { getPrecision, toFixedRoundDown, truncateWithPrecision, updateIconIfNeeded } from '../utils';
+import { Calculator } from '../services/Calculator';
 
 export enum OrderType {
-  MARKET = "MARKET",
-  LIMIT = "LIMIT",
+  MARKET = 'MARKET',
+  LIMIT = 'LIMIT',
 }
 
 // List of user actions for CurrencyInputGroup
 export enum UserAction {
-  UPDATE_PRICE = "UPDATE_PRICE",
-  SET_TOKEN_1 = "SET_TOKEN_1",
-  SET_TOKEN_2 = "SET_TOKEN_2",
+  UPDATE_PRICE = 'UPDATE_PRICE',
+  SET_TOKEN_1 = 'SET_TOKEN_1',
+  SET_TOKEN_2 = 'SET_TOKEN_2',
 }
 
 // Tracks the token the user specified
 export enum SpecifiedToken {
-  UNSPECIFIED = "UNSPECIFIED",
-  TOKEN_1 = "TOKEN_1", // Quantity
-  TOKEN_2 = "TOKEN_2", // Total
+  UNSPECIFIED = 'UNSPECIFIED',
+  TOKEN_1 = 'TOKEN_1', // Quantity
+  TOKEN_2 = 'TOKEN_2', // Total
 }
 
 export enum ErrorMessage {
-  NONZERO_PRICE = "NONZERO_PRICE",
-  NONZERO_AMOUNT = "NONZERO_AMOUNT",
-  INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS",
-  COULD_NOT_GET_QUOTE = "COULD_NOT_GET_QUOTE",
-  INSUFFICIENT_LIQUDITIY = "INSUFFICIENT_LIQUDITIY",
-  NO_ORDERS = "NO_ORDERS",
+  NONZERO_PRICE = 'NONZERO_PRICE',
+  NONZERO_AMOUNT = 'NONZERO_AMOUNT',
+  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
+  COULD_NOT_GET_QUOTE = 'COULD_NOT_GET_QUOTE',
+  INSUFFICIENT_LIQUDITIY = 'INSUFFICIENT_LIQUDITIY',
+  NO_ORDERS = 'NO_ORDERS',
 }
 
 export const PLATFORM_BADGE_ID = 4; //TODO: Get this data from the platform badge
@@ -94,16 +85,16 @@ interface SetPricePayload {
 }
 
 export const initialTokenInput: TokenInput = {
-  address: "",
-  symbol: "",
-  iconUrl: "",
+  address: '',
+  symbol: '',
+  iconUrl: '',
   amount: -1,
   decimals: 0,
 };
 
 const initialValidationResult: ValidationResult = {
   valid: true,
-  message: "",
+  message: '',
 };
 
 export const initialState: OrderInputState = {
@@ -125,13 +116,10 @@ export function validatePrice(price: number): ValidationResult {
   if (priceIsZero) {
     return { valid: false, message: ErrorMessage.NONZERO_PRICE };
   }
-  return { valid: true, message: "" };
+  return { valid: true, message: '' };
 }
 
-export function toAdexOrderType(
-  dexterOrderType: OrderType,
-  postOnly: boolean
-): adex.OrderType {
+export function toAdexOrderType(dexterOrderType: OrderType, postOnly: boolean): adex.OrderType {
   return {
     MARKET: adex.OrderType.MARKET,
     LIMIT: postOnly ? adex.OrderType.POSTONLY : adex.OrderType.LIMIT,
@@ -140,7 +128,7 @@ export function toAdexOrderType(
 
 export function toDexterOrderType(adexOrderType: adex.OrderType): OrderType {
   if (adexOrderType === adex.OrderType.MARKETPARTIAL) {
-    throw new Error("Unimplemented");
+    throw new Error('Unimplemented');
   }
   return {
     MARKET: OrderType.MARKET,
@@ -149,12 +137,9 @@ export function toDexterOrderType(adexOrderType: adex.OrderType): OrderType {
   }[adexOrderType];
 }
 
-function swapSideIfToken2Specified(
-  side: OrderSide,
-  specifiedToken: SpecifiedToken
-): OrderSide {
+function swapSideIfToken2Specified(side: OrderSide, specifiedToken: SpecifiedToken): OrderSide {
   if (specifiedToken === SpecifiedToken.UNSPECIFIED) {
-    throw new Error("Token must be specified");
+    throw new Error('Token must be specified');
   }
   const swapSide = (side: OrderSide) => {
     return side === OrderSide.BUY ? OrderSide.SELL : OrderSide.BUY;
@@ -174,20 +159,14 @@ function swapSideIfToken2Specified(
 // | sell       | token1         | sell     |
 // | sell       | token2         | buy      | <- swap
 // |------------|----------------|----------|
-export function toAdexOrderSide(
-  dexterSide: OrderSide,
-  specifiedToken: SpecifiedToken
-): adex.OrderSide {
+export function toAdexOrderSide(dexterSide: OrderSide, specifiedToken: SpecifiedToken): adex.OrderSide {
   return swapSideIfToken2Specified(dexterSide, specifiedToken);
 }
 
 // Convert Alphadex side to user-facing side in DeXter. DeXter defines
 // "side" based on token order in pairAddress, while Alphadex sets it based
 // on the specifiedToken.
-export function toDexterOrderSide(
-  adexSide: adex.OrderSide,
-  specifiedToken: SpecifiedToken
-): OrderSide {
+export function toDexterOrderSide(adexSide: adex.OrderSide, specifiedToken: SpecifiedToken): OrderSide {
   // same logic to convert back, so we can reuse the same logic
   return swapSideIfToken2Specified(adexSide, specifiedToken);
 }
@@ -195,15 +174,13 @@ export function toDexterOrderSide(
 export function noValidationErrors(
   validationPrice: ValidationResult,
   validationToken1: ValidationResult,
-  validationToken2: ValidationResult
+  validationToken2: ValidationResult,
 ): boolean {
-  return (
-    validationPrice.valid && validationToken1.valid && validationToken2.valid
-  );
+  return validationPrice.valid && validationToken1.valid && validationToken2.valid;
 }
 
 export function pairAddressIsSet(pairAddress: string): boolean {
-  return pairAddress !== "";
+  return pairAddress !== '';
 }
 
 export function priceIsValid(price: number, type: OrderType): boolean {
@@ -222,11 +199,7 @@ export function tokenIsSpecified(specifiedToken: SpecifiedToken): boolean {
 const selectInfoToken1 = (state: RootState) => state.pairSelector.token1;
 const selectInfoToken2 = (state: RootState) => state.pairSelector.token2;
 export const selectBalanceByAddress = createSelector(
-  [
-    selectInfoToken1,
-    selectInfoToken2,
-    (state: RootState, address: string) => address,
-  ],
+  [selectInfoToken1, selectInfoToken2, (state: RootState, address: string) => address],
   (infoToken1, infoToken2, address) => {
     if (infoToken1.address === address) {
       return infoToken1.balance;
@@ -235,7 +208,7 @@ export const selectBalanceByAddress = createSelector(
     } else {
       return 0;
     }
-  }
+  },
 );
 
 /*
@@ -245,24 +218,21 @@ export const fetchQuote = createAsyncThunk<
   Quote,
   undefined, // set to undefined if the thunk doesn't expect any arguments
   { state: RootState }
->("orderInput/fetchQuote", async (_arg, thunkAPI) => {
+>('orderInput/fetchQuote', async (_arg, thunkAPI) => {
   const state = thunkAPI.getState();
   if (!state.orderInput.validationPrice.valid) {
-    throw new Error("Validation errors found");
+    throw new Error('Validation errors found');
   }
   if (!pairAddressIsSet(state.pairSelector.address)) {
-    throw new Error("Pair address is not initilized yet.");
+    throw new Error('Pair address is not initilized yet.');
   }
   if (!priceIsValid(state.orderInput.price, state.orderInput.type)) {
-    throw new Error("Price must be set on LIMIT orders");
+    throw new Error('Price must be set on LIMIT orders');
   }
-  let priceToSend =
-    state.orderInput.type === OrderType.MARKET
-      ? undefined
-      : state.orderInput.price;
+  let priceToSend = state.orderInput.type === OrderType.MARKET ? undefined : state.orderInput.price;
 
   if (state.orderInput.specifiedToken === SpecifiedToken.UNSPECIFIED) {
-    throw new Error("No token was specified");
+    throw new Error('No token was specified');
   }
   const targetToken = {
     TOKEN_1: () => state.orderInput.token1,
@@ -277,7 +247,7 @@ export const fetchQuote = createAsyncThunk<
     targetToken.amount,
     PLATFORM_BADGE_ID,
     priceToSend,
-    undefined // slippage to sent
+    undefined, // slippage to sent
   );
   const quote: Quote = JSON.parse(JSON.stringify(response.data));
   return quote;
@@ -286,23 +256,22 @@ export const fetchQuote = createAsyncThunk<
 /*
  * SUBMIT ORDER
  */
-export const submitOrder = createAsyncThunk<
-  SdkResult,
-  undefined,
-  { state: RootState }
->("orderInput/submitOrder", async (_arg, thunkAPI) => {
-  const state = thunkAPI.getState();
-  const dispatch = thunkAPI.dispatch;
-  const rdt = getRdtOrThrow();
-  const result = await createTx(state, rdt);
-  // Asynchronously update balances + account history
-  await Promise.all([
-    dispatch(fetchBalances()),
-    // dispatch(fetchAccountHistory()),
-  ]);
-  // Deep copying is needed to prevent "non-serializable value" error
-  return JSON.parse(JSON.stringify(result));
-});
+export const submitOrder = createAsyncThunk<SdkResult, undefined, { state: RootState }>(
+  'orderInput/submitOrder',
+  async (_arg, thunkAPI) => {
+    const state = thunkAPI.getState();
+    const dispatch = thunkAPI.dispatch;
+    const rdt = getRdtOrThrow();
+    const result = await createTx(state, rdt);
+    // Asynchronously update balances + account history
+    await Promise.all([
+      dispatch(fetchBalances()),
+      // dispatch(fetchAccountHistory()),
+    ]);
+    // Deep copying is needed to prevent "non-serializable value" error
+    return JSON.parse(JSON.stringify(result));
+  },
+);
 
 interface SetTokenAmountPayload {
   amount: number;
@@ -314,21 +283,15 @@ interface SetTokenAmountPayload {
 }
 
 export const orderInputSlice = createSlice({
-  name: "orderInput",
+  name: 'orderInput',
   initialState,
 
   // synchronous reducers
   reducers: {
     updateAdex(state, action: PayloadAction<adex.StaticState>) {
-      const serializedState: adex.StaticState = JSON.parse(
-        JSON.stringify(action.payload)
-      );
-      const adexToken1 = updateIconIfNeeded(
-        serializedState.currentPairInfo.token1
-      );
-      const adexToken2 = updateIconIfNeeded(
-        serializedState.currentPairInfo.token2
-      );
+      const serializedState: adex.StaticState = JSON.parse(JSON.stringify(action.payload));
+      const adexToken1 = updateIconIfNeeded(serializedState.currentPairInfo.token1);
+      const adexToken2 = updateIconIfNeeded(serializedState.currentPairInfo.token2);
       if (state.token1.address !== adexToken1.address) {
         state.token1 = {
           address: adexToken1.address,
@@ -359,14 +322,7 @@ export const orderInputSlice = createSlice({
     },
     setTokenAmount(state, action: PayloadAction<SetTokenAmountPayload>) {
       // Deconstruct inputs
-      const {
-        amount,
-        specifiedToken,
-        bestBuy,
-        bestSell,
-        balanceToken1,
-        balanceToken2,
-      } = action.payload;
+      const { amount, specifiedToken, bestBuy, bestSell, balanceToken1, balanceToken2 } = action.payload;
 
       // ignore if no token is specified
       if (specifiedToken === SpecifiedToken.UNSPECIFIED) {
@@ -412,12 +368,7 @@ export const orderInputSlice = createSlice({
       const priceIsUnset = state.price === -1;
       const isLimitOrder = state.type === OrderType.LIMIT;
       const amountIsPositive = amount > 0;
-      if (
-        priceIsUnset &&
-        isLimitOrder &&
-        amountIsPositive &&
-        bestPrice !== undefined
-      ) {
+      if (priceIsUnset && isLimitOrder && amountIsPositive && bestPrice !== undefined) {
         state.price = bestPrice;
       }
 
@@ -439,7 +390,7 @@ export const orderInputSlice = createSlice({
       // Set insufficient balance for specifiedToken
       if (
         specifiedToken === SpecifiedToken.TOKEN_1 &&
-        state.side === "SELL" &&
+        state.side === 'SELL' &&
         balanceToken1 !== undefined &&
         balanceToken1 > 0 &&
         balanceToken1 < amount
@@ -451,7 +402,7 @@ export const orderInputSlice = createSlice({
       }
       if (
         specifiedToken === SpecifiedToken.TOKEN_2 &&
-        state.side === "BUY" &&
+        state.side === 'BUY' &&
         balanceToken2 !== undefined &&
         balanceToken2 > 0 &&
         balanceToken2 < amount
@@ -463,7 +414,7 @@ export const orderInputSlice = createSlice({
       }
 
       // Set insufficient balance for unspecifiedToken
-      if (specifiedToken === SpecifiedToken.TOKEN_1 && state.side === "BUY") {
+      if (specifiedToken === SpecifiedToken.TOKEN_1 && state.side === 'BUY') {
         // calculate Token2 amount
         const amountToken2 = Calculator.multiply(amount, state.price);
         if (balanceToken2 !== undefined && amountToken2 > balanceToken2) {
@@ -473,7 +424,7 @@ export const orderInputSlice = createSlice({
           };
         }
       }
-      if (specifiedToken === SpecifiedToken.TOKEN_2 && state.side === "SELL") {
+      if (specifiedToken === SpecifiedToken.TOKEN_2 && state.side === 'SELL') {
         // calculate Token1 amount
         const amountToken1 = Calculator.divide(amount, state.price);
         if (balanceToken1 !== undefined && amountToken1 > balanceToken1) {
@@ -508,15 +459,9 @@ export const orderInputSlice = createSlice({
 
       // Check for insufficient balances
       // Scenario 1: BUY side -> specifiedToken1
-      if (
-        state.specifiedToken === SpecifiedToken.TOKEN_1 &&
-        state.side === "BUY"
-      ) {
+      if (state.specifiedToken === SpecifiedToken.TOKEN_1 && state.side === 'BUY') {
         // calculate Token2 amount
-        const amountToken2 = Calculator.multiply(
-          state.token1.amount,
-          state.price
-        );
+        const amountToken2 = Calculator.multiply(state.token1.amount, state.price);
         if (balanceToken2 && amountToken2 > balanceToken2) {
           state.validationToken2 = {
             valid: false,
@@ -525,15 +470,9 @@ export const orderInputSlice = createSlice({
         }
       }
       // Scenario 2: SELL side -> specifiedToken2
-      if (
-        state.specifiedToken === SpecifiedToken.TOKEN_2 &&
-        state.side === "SELL"
-      ) {
+      if (state.specifiedToken === SpecifiedToken.TOKEN_2 && state.side === 'SELL') {
         // calculate Token1 amount
-        const amountToken1 = Calculator.divide(
-          state.token2.amount,
-          state.price
-        );
+        const amountToken1 = Calculator.divide(state.token2.amount, state.price);
         if (balanceToken1 && amountToken1 > balanceToken1) {
           state.validationToken1 = {
             valid: false,
@@ -580,22 +519,19 @@ export const orderInputSlice = createSlice({
       state.quoteError = undefined;
       state.quoteDescription = undefined;
     });
-    builder.addCase(
-      fetchQuote.fulfilled,
-      (state, action: PayloadAction<Quote>) => {
-        const quote = action.payload;
-        state.quote = quote;
-        state.quoteError = {
-          100: undefined, // success
-          101: undefined, // success
-          103: undefined, // success
-          102: ErrorMessage.INSUFFICIENT_LIQUDITIY,
-          5: ErrorMessage.INSUFFICIENT_LIQUDITIY,
-          2: ErrorMessage.NO_ORDERS,
-        }[quote.resultCode];
-        state.quoteDescription = toDescription(quote);
-      }
-    );
+    builder.addCase(fetchQuote.fulfilled, (state, action: PayloadAction<Quote>) => {
+      const quote = action.payload;
+      state.quote = quote;
+      state.quoteError = {
+        100: undefined, // success
+        101: undefined, // success
+        103: undefined, // success
+        102: ErrorMessage.INSUFFICIENT_LIQUDITIY,
+        5: ErrorMessage.INSUFFICIENT_LIQUDITIY,
+        2: ErrorMessage.NO_ORDERS,
+      }[quote.resultCode];
+      state.quoteDescription = toDescription(quote);
+    });
     builder.addCase(fetchQuote.rejected, (state, action) => {
       state.quote = undefined;
       state.quoteError = undefined;
@@ -621,16 +557,10 @@ export const orderInputSlice = createSlice({
 });
 
 function toDescription(quote: Quote): string {
-  let quoteDescription = "";
+  let quoteDescription = '';
   if (quote.fromAmount > 0 && quote.toAmount > 0) {
-    const fromAmount = truncateWithPrecision(
-      quote.fromAmount,
-      getPrecision(quote.fromToken.symbol)
-    );
-    const toAmount = truncateWithPrecision(
-      quote.toAmount,
-      getPrecision(quote.toToken.symbol)
-    );
+    const fromAmount = truncateWithPrecision(quote.fromAmount, getPrecision(quote.fromToken.symbol));
+    const toAmount = truncateWithPrecision(quote.toAmount, getPrecision(quote.toToken.symbol));
     const toTokenSymbol = quote.toToken.symbol;
     const fromTokenSymbol = quote.fromToken.symbol;
     quoteDescription +=
@@ -640,7 +570,7 @@ function toDescription(quote: Quote): string {
       `slippage: ${Math.round(quote.slippage * 100)}%.\n`;
   }
   if (quote.resultMessageLong) {
-    quoteDescription += "\n" + quote.resultMessageLong;
+    quoteDescription += '\n' + quote.resultMessageLong;
   }
   return quoteDescription;
 }
@@ -654,7 +584,7 @@ function getSlippage(type: OrderType): number {
  */
 async function createTx(state: RootState, rdt: RDT) {
   if (state.orderInput.specifiedToken === SpecifiedToken.UNSPECIFIED) {
-    throw new Error("No token was specified");
+    throw new Error('No token was specified');
   }
   const targetToken = {
     TOKEN_1: () => state.orderInput.token1,
@@ -667,13 +597,10 @@ async function createTx(state: RootState, rdt: RDT) {
   // One example where this fix is needed is xUSDC:
   // https://github.com/DeXter-on-Radix/website/issues/486
   if (targetToken.decimals) {
-    targetTokenAmount = toFixedRoundDown(
-      targetTokenAmount,
-      targetToken.decimals
-    );
+    targetTokenAmount = toFixedRoundDown(targetTokenAmount, targetToken.decimals);
   }
   // Adex creates the transaction manifest
-  const accountAddress = state.radix.selectedAccount?.address || "";
+  const accountAddress = state.radix.selectedAccount?.address || '';
   const createOrderResponse = await adex.createExchangeOrderTx(
     state.pairSelector.address,
     toAdexOrderType(state.orderInput.type, state.orderInput.postOnly),
@@ -684,7 +611,7 @@ async function createTx(state: RootState, rdt: RDT) {
     getSlippage(state.orderInput.type),
     PLATFORM_BADGE_ID,
     accountAddress, // submit account
-    accountAddress // settle account
+    accountAddress, // settle account
   );
   // Then submits the order to the wallet
   return await submitTransaction(createOrderResponse.data, rdt);
@@ -698,22 +625,16 @@ async function submitTransaction(manifest: any, rdt: RDT) {
   const result = await rdt.walletApi.sendTransaction({
     transactionManifest: manifest,
     version: 1,
-    message: "Order Using DeXter",
+    message: 'Order Using DeXter',
   });
   if (result.isErr()) {
-    console.error("Problem with submitting tx.", result.error.message);
-    return new SdkResult("ERROR", result.error.message, result.error);
+    console.error('Problem with submitting tx.', result.error.message);
+    return new SdkResult('ERROR', result.error.message, result.error);
   }
-  let txDetailResult = await getTransactionDetail(
-    result.value.transactionIntentHash
-  );
+  let txDetailResult = await getTransactionDetail(result.value.transactionIntentHash);
   if (txDetailResult.status != 200) {
-    return new SdkResult("ERROR", txDetailResult.message, txDetailResult.data);
+    return new SdkResult('ERROR', txDetailResult.message, txDetailResult.data);
   } else {
-    return new SdkResult(
-      "SUCCESS",
-      txDetailResult.message,
-      txDetailResult.data
-    );
+    return new SdkResult('SUCCESS', txDetailResult.message, txDetailResult.data);
   }
 }
